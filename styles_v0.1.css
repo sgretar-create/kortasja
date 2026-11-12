@@ -1,0 +1,1906 @@
+    #rarikAuthPanel { position:absolute; left:16px; bottom:16px; z-index:220; display:none; align-items:center; gap:10px; max-width:min(420px,calc(100vw - 32px)); box-sizing:border-box; padding:8px 10px 8px 12px; border:1px solid #d8e1e7; border-radius:9px; background:rgba(255,255,255,.97); box-shadow:0 4px 16px rgba(20,42,57,.16); color:#263238; font-size:12px; }
+    #rarikAuthText { flex:1 1 auto; }
+    #rarikAuthButton { display:none; align-items:center; justify-content:center; min-height:30px; padding:5px 10px; border:0; border-radius:6px; background:#174f70; color:#fff; cursor:pointer; font-weight:600; }
+    #rarikAuthButton:hover { background:#123d57; }
+    @media (max-width:760px) { #rarikAuthPanel { left:10px; bottom:44px; max-width:calc(100vw - 20px); } }
+    html,
+    body,
+    #viewDiv {
+      padding: 0;
+      margin: 0;
+      height: 100%;
+      width: 100%;
+      font-family: sans-serif;
+    }
+
+    #statusPanel {
+      position: absolute;
+      top: 10px;
+      right: 10px;
+      background: white;
+      padding: 10px 14px;
+      border-radius: 4px;
+      box-shadow: 0 1px 4px rgba(0, 0, 0, 0.3);
+      font-size: 13px;
+      max-width: 320px;
+      max-height: 1000px;
+      overflow-y: auto;
+      z-index: 99;
+    }
+
+    #statusPanel::-webkit-scrollbar {
+      width: 8px;
+    }
+
+    #statusPanel::-webkit-scrollbar-track {
+      background: transparent;
+    }
+
+    #statusPanel::-webkit-scrollbar-thumb {
+      background: #c0c0c0;
+      border-radius: 4px;
+    }
+
+    #statusPanel::-webkit-scrollbar-thumb:hover {
+      background: #a0a0a0;
+    }
+
+    #statusPanel>div {
+      margin-bottom: 4px;
+    }
+
+    .ok {
+      color: #2e7d32;
+    }
+
+    .fail {
+      color: #c62828;
+    }
+
+    .pending {
+      color: #888;
+    }
+
+    #coordinateDisplay {
+      position: fixed;
+      left: 50%;
+      bottom: 8px;
+      transform: translateX(-50%);
+      z-index: 98;
+      padding: 5px 10px;
+      border-radius: 4px;
+      background: rgba(255, 255, 255, 0.94);
+      box-shadow: 0 1px 4px rgba(0, 0, 0, 0.3);
+      color: #263238;
+      font-size: 12px;
+      line-height: 1.4;
+      white-space: nowrap;
+      pointer-events: none;
+    }
+
+    .layerRow {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      margin-bottom: 6px;
+      cursor: pointer;
+    }
+
+    .layerRow input[type="checkbox"] {
+      cursor: pointer;
+      flex-shrink: 0;
+    }
+
+    .infoBubble {
+      flex-shrink: 0;
+      width: 16px;
+      height: 16px;
+      border-radius: 50%;
+      background: #90a4ae;
+      color: white;
+      font-size: 11px;
+      font-weight: 700;
+      line-height: 16px;
+      text-align: center;
+      cursor: pointer;
+      user-select: none;
+      margin-left: auto;
+    }
+
+    .infoBubble:hover {
+      background: #2e5266;
+    }
+
+    #infoModalOverlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.4);
+      z-index: 500;
+      display: none;
+      align-items: center;
+      justify-content: center;
+    }
+
+    #infoModal {
+      background: white;
+      border-radius: 8px;
+      box-shadow: 0 4px 24px rgba(0, 0, 0, 0.4);
+      width: 90%;
+      max-width: 420px;
+      max-height: 70vh;
+      overflow: auto;
+      font-size: 13px;
+    }
+
+    #infoModalHeader {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background: #2e5266;
+      color: white;
+      padding: 10px 14px;
+      position: sticky;
+      top: 0;
+      border-radius: 8px 8px 0 0;
+    }
+
+    #infoModalClose {
+      cursor: pointer;
+      padding: 0 4px;
+      font-size: 16px;
+    }
+
+    #infoModalBody {
+      padding: 14px 16px;
+      line-height: 1.5;
+      white-space: pre-wrap;
+    }
+
+    .swatch {
+      width: 14px;
+      height: 14px;
+      border-radius: 3px;
+      flex-shrink: 0;
+      border: 1px solid rgba(0, 0, 0, 0.25);
+    }
+
+    .swatch-point {
+      border-radius: 50%;
+    }
+
+    .swatch-line {
+      width: 16px;
+      height: 3px;
+      border-radius: 0;
+      border: none;
+    }
+
+    .layerRowText {
+      display: flex;
+      flex-direction: column;
+      line-height: 1.25;
+    }
+
+    .layerRowTitle {
+      font-weight: 600;
+      color: #222;
+    }
+
+    .layerRowStatus {
+      font-size: 11px;
+
+    }
+
+    .layerCaret {
+      cursor: pointer;
+      font-size: 10px;
+      color: #666;
+      width: 12px;
+      text-align: center;
+      flex-shrink: 0;
+    }
+
+    .layerSubLegend {
+      display: none;
+      flex-direction: column;
+      gap: 3px;
+      margin: 2px 0 8px 22px;
+      font-size: 11px;
+      color: #444;
+    }
+
+    .layerSubLegend.open {
+      display: flex;
+    }
+
+    .layerSubLegendItem {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .layerSubLegendSwatch {
+      width: 12px;
+      height: 12px;
+      border-radius: 2px;
+      flex-shrink: 0;
+      border: 1px solid rgba(0, 0, 0, 0.25);
+    }
+
+    .institutionGroup {
+      margin-bottom: 4px;
+    }
+
+    .institutionHeader {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      cursor: pointer;
+      font-weight: 700;
+      color: #2e5266;
+      padding: 4px 0;
+      border-bottom: 1px solid #e0e0e0;
+      margin-bottom: 4px;
+    }
+
+    .institutionCaret {
+      font-size: 10px;
+      width: 12px;
+      text-align: center;
+      flex-shrink: 0;
+      color: #666;
+    }
+
+    .institutionBody {
+      display: none;
+      flex-direction: column;
+      gap: 2px;
+      padding-left: 6px;
+      margin-bottom: 6px;
+    }
+
+    .institutionBody.open {
+      display: flex;
+    }
+
+    .institutionEmpty {
+      font-size: 11px;
+      color: #999;
+      font-style: italic;
+      padding: 2px 0 6px 18px;
+    }
+
+    .subgroupHeader {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      cursor: pointer;
+      font-weight: 600;
+      font-size: 12px;
+      color: #455a64;
+      padding: 3px 0 3px 2px;
+      margin-top: 4px;
+      border-left: 2px solid #cfd8dc;
+    }
+
+    .subgroupCaret {
+      font-size: 9px;
+      width: 10px;
+      text-align: center;
+      flex-shrink: 0;
+      color: #888;
+    }
+
+    .subgroupBody {
+      display: none;
+      flex-direction: column;
+      gap: 2px;
+      padding-left: 16px;
+      margin-bottom: 4px;
+    }
+
+    .subgroupBody.open {
+      display: flex;
+    }
+
+    #attrPanel {
+      position: absolute;
+      bottom: 20px;
+      left: 20px;
+      background: white;
+      border-radius: 6px;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.35);
+      max-width: 380px;
+      max-height: 45vh;
+      overflow: auto;
+      z-index: 100;
+      font-size: 13px;
+    }
+
+    #attrPanelHeader {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background: #2e5266;
+      color: white;
+      padding: 8px 12px;
+      position: sticky;
+      top: 0;
+    }
+
+    #attrPanelClose {
+      cursor: pointer;
+      padding: 0 4px;
+    }
+
+    #attrPanelBody {
+      padding: 8px 12px;
+    }
+
+    #attrPanelBody table {
+      border-collapse: collapse;
+      width: 100%;
+    }
+
+    #attrPanelBody td {
+      padding: 4px 6px;
+      border-bottom: 1px solid #eee;
+      vertical-align: top;
+      word-break: break-word;
+    }
+
+    #attrPanelBody td:first-child {
+      font-weight: 600;
+      color: #444;
+      white-space: nowrap;
+      padding-right: 10px;
+    }
+
+    #attrPanelBody a {
+      color: #1565c0;
+      text-decoration: underline;
+      overflow-wrap: anywhere;
+    }
+
+    #listPanel {
+      position: absolute;
+      bottom: 20px;
+      right: 20px;
+      background: white;
+      border-radius: 6px;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.35);
+      width: 320px;
+      max-height: 55vh;
+      overflow: auto;
+      z-index: 100;
+      font-size: 13px;
+      display: none;
+    }
+
+    #listPanelHeader {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background: #2e5266;
+      color: white;
+      padding: 8px 12px;
+      position: sticky;
+      top: 0;
+    }
+
+    #listPanelClose,
+    #listPanelClear {
+      cursor: pointer;
+      padding: 0 4px;
+      font-size: 12px;
+    }
+
+    #listPanelBody {
+      padding: 6px 0;
+    }
+
+    .listGroupHeader {
+      font-weight: 600;
+      background: #f2f2f2;
+      padding: 5px 12px;
+      position: sticky;
+      top: 0;
+    }
+
+    .listItemRow {
+      padding: 6px 14px;
+      cursor: pointer;
+      border-bottom: 1px solid #f0f0f0;
+    }
+
+    .listItemRow:hover {
+      background: #eef4fa;
+    }
+
+    .listItemRow.active {
+      background: #d6e9fb;
+      font-weight: 600;
+    }
+
+    /* Leit í Landeignaskrá */
+    #landSearchPanel {
+      position: absolute;
+      top: 10px;
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 210;
+      width: min(360px, calc(100vw - 370px));
+      min-width: 240px;
+    }
+
+    #landSearchInputWrap {
+      display: flex;
+      align-items: center;
+      background: white;
+      border-radius: 5px;
+      box-shadow: 0 1px 4px rgba(0, 0, 0, 0.3);
+      overflow: hidden;
+    }
+
+    #landSearchInput {
+      flex: 1 1 auto;
+      min-width: 0;
+      border: 0;
+      outline: 0;
+      padding: 9px 10px;
+      font-size: 13px;
+    }
+
+    #landSearchClear {
+      display: none;
+      border: 0;
+      background: transparent;
+      color: #607d8b;
+      cursor: pointer;
+      padding: 8px 10px;
+      font-size: 15px;
+    }
+
+    #landSearchStatus {
+      padding: 7px 10px;
+      color: #607d8b;
+      font-size: 11px;
+      background: #fafafa;
+      border-top: 1px solid #eee;
+    }
+
+    #landSearchResults {
+      display: none;
+      margin-top: 3px;
+      overflow-y: auto;
+      max-height: min(360px, 55vh);
+      background: white;
+      border-radius: 5px;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+    }
+
+    .landSearchResult {
+      padding: 8px 10px;
+      cursor: pointer;
+      border-bottom: 1px solid #eee;
+    }
+
+    .landSearchResult:last-child {
+      border-bottom: 0;
+    }
+
+    .landSearchResult:hover,
+    .landSearchResult.active {
+      background: #eef4fa;
+    }
+
+    .landSearchResultTitle {
+      font-weight: 600;
+      color: #263238;
+    }
+
+    .landSearchResultMeta {
+      margin-top: 2px;
+      font-size: 11px;
+      color: #607d8b;
+    }
+
+    @media (max-width: 760px) {
+      #landSearchPanel {
+        top: 58px;
+        left: 50%;
+        right: auto;
+        width: calc(100vw - 20px);
+        min-width: 0;
+      }
+    }
+
+    /* Tri-state group controls */
+    .institutionCheckbox,
+    .subgroupCheckbox {
+      margin: 0;
+      cursor: pointer;
+      flex: 0 0 auto;
+      accent-color: #2e5266;
+    }
+
+    .institutionCheckbox:disabled,
+    .subgroupCheckbox:disabled {
+      cursor: default;
+      opacity: 0.45;
+    }
+
+    .institutionHeader,
+    .subgroupHeader {
+      user-select: none;
+    }
+
+    #rarikLogo {
+      display: block;
+      width: 150px;
+      max-width: 100%;
+      height: auto;
+      margin: 0 auto 10px;
+    }
+
+    .measurementToolPanel {
+      width: 300px;
+      max-width: calc(100vw - 80px);
+      background: #fff;
+    }
+
+    .measurementToolChoices {
+      display: flex;
+      gap: 6px;
+      padding: 8px;
+    }
+
+    .measurementToolChoice {
+      flex: 1;
+      border: 1px solid #c5c5c5;
+      border-radius: 3px;
+      background: #fff;
+      color: #323232;
+      padding: 6px 8px;
+      cursor: pointer;
+    }
+
+    .measurementToolChoice.active {
+      border-color: #0079c1;
+      background: #e8f4fb;
+      color: #005e95;
+    }
+
+    .measurementWidgetContent {
+      min-height: 48px;
+    }
+
+    :root {
+      --ui-ink: #172b3a;
+      --ui-muted: #607482;
+      --ui-brand: #174f70;
+      --ui-brand-hover: #123d57;
+      --ui-border: #d8e1e7;
+      --ui-surface: #fff;
+      --ui-surface-subtle: #f5f8fa;
+      --ui-shadow: 0 8px 26px rgba(20, 42, 57, 0.16);
+      --ui-radius: 12px;
+    }
+
+    body {
+      color: var(--ui-ink);
+      font-family: Inter, "Segoe UI", Arial, sans-serif;
+      -webkit-font-smoothing: antialiased;
+      text-rendering: optimizeLegibility;
+    }
+
+    #viewDiv .esri-widget--button {
+      border-radius: 8px;
+      box-shadow: 0 4px 12px rgba(20, 42, 57, 0.2);
+    }
+
+    #viewDiv .esri-widget--button:focus:not(:focus-visible) {
+      outline: none;
+      box-shadow: 0 4px 12px rgba(20, 42, 57, 0.2);
+    }
+
+    #statusPanel,
+    #attrPanel,
+    #listPanel,
+    #landSearchInputWrap,
+    #landSearchResults {
+      border: 1px solid rgba(216, 225, 231, 0.95);
+      border-radius: var(--ui-radius);
+      background: var(--ui-surface);
+      box-shadow: var(--ui-shadow);
+    }
+
+    #statusPanel {
+      top: 16px;
+      right: 16px;
+      width: min(300px, calc(100vw - 32px));
+      max-width: 300px;
+      max-height: calc(100vh - 96px);
+      box-sizing: border-box;
+      padding: 16px;
+      color: var(--ui-ink);
+      font-size: 13px;
+      scrollbar-color: #b7c5ce transparent;
+      scrollbar-width: thin;
+    }
+
+    #statusPanel::-webkit-scrollbar {
+      width: 6px;
+    }
+
+    #statusPanel::-webkit-scrollbar-thumb {
+      background: #b7c5ce;
+      border-radius: 6px;
+    }
+
+    #statusPanel>strong {
+      display: block;
+      padding: 0 0 12px;
+      border-bottom: 1px solid var(--ui-border);
+      color: var(--ui-ink);
+      font-size: 14px;
+      letter-spacing: 0.02em;
+    }
+
+    #rarikLogo {
+      width: 142px;
+      margin: 0 auto 14px;
+    }
+
+    .institutionGroup {
+      margin: 0;
+      padding: 2px 0;
+    }
+
+    .institutionHeader {
+      min-height: 38px;
+      gap: 9px;
+      margin: 0;
+      padding: 7px 4px;
+      border: 0;
+      border-bottom: 1px solid var(--ui-border);
+      color: var(--ui-brand);
+      transition: background-color 140ms ease, color 140ms ease;
+    }
+
+    .institutionHeader:hover,
+    .subgroupHeader:hover {
+      color: var(--ui-brand-hover);
+      background: var(--ui-surface-subtle);
+    }
+
+    .institutionTitle {
+      flex: 1;
+    }
+
+    .institutionCaret,
+    .subgroupCaret,
+    .layerCaret {
+      color: var(--ui-muted);
+    }
+
+    .institutionBody {
+      gap: 3px;
+      margin: 2px 0 8px;
+      padding: 4px 0 4px 10px;
+    }
+
+    .subgroupHeader {
+      min-height: 34px;
+      align-items: center;
+      gap: 8px;
+      margin-top: 5px;
+      padding: 6px 6px;
+      border-left: 2px solid #9bb9ca;
+      border-radius: 0 6px 6px 0;
+      color: #355468;
+      font-size: 12px;
+      transition: background-color 140ms ease, color 140ms ease;
+    }
+
+    .subgroupBody {
+      gap: 3px;
+      margin: 3px 0 6px;
+      padding-left: 12px;
+    }
+
+    .institutionCheckbox,
+    .subgroupCheckbox,
+    .layerRow input[type="checkbox"] {
+      width: 15px;
+      height: 15px;
+      accent-color: var(--ui-brand);
+    }
+
+    .layerRow {
+      min-height: 40px;
+      gap: 9px;
+      margin: 0;
+      padding: 6px 7px;
+      border-radius: 7px;
+      transition: background-color 140ms ease;
+    }
+
+    .layerRow:hover {
+      background: var(--ui-surface-subtle);
+    }
+
+    .layerRowText {
+      min-width: 0;
+      gap: 2px;
+    }
+
+    .layerRowTitle {
+      color: var(--ui-ink);
+      font-size: 12px;
+      font-weight: 600;
+    }
+
+    .layerRowStatus {
+      color: var(--ui-muted);
+      font-size: 10px;
+      line-height: 1.25;
+    }
+
+    .layerRowStatus.ok,
+    .ok {
+      color: #26734d;
+    }
+
+    .layerRowStatus.fail,
+    .fail {
+      color: #b33a3a;
+    }
+
+    .layerRowStatus.pending,
+    .pending {
+      color: var(--ui-muted);
+    }
+
+    .infoBubble {
+      width: 19px;
+      height: 19px;
+      border: 1px solid #c9d7df;
+      background: #edf3f6;
+      color: #38586a;
+      font-size: 11px;
+      line-height: 17px;
+      transition: background-color 140ms ease, color 140ms ease;
+    }
+
+    .infoBubble:hover {
+      border-color: var(--ui-brand);
+      background: var(--ui-brand);
+      color: #fff;
+    }
+
+    .swatch {
+      width: 13px;
+      height: 13px;
+    }
+
+    #landSearchPanel {
+      top: 16px;
+      width: min(440px, calc(100vw - 410px));
+      min-width: 260px;
+    }
+
+    #landSearchInputWrap {
+      min-height: 46px;
+      padding: 0 5px 0 14px;
+      border-radius: 10px;
+      transition: border-color 140ms ease, box-shadow 140ms ease;
+    }
+
+    #landSearchInputWrap:focus-within {
+      border-color: #6b9cb5;
+      box-shadow: 0 0 0 3px rgba(23, 79, 112, 0.13), var(--ui-shadow);
+    }
+
+    #landSearchInput {
+      min-height: 42px;
+      padding: 9px 4px;
+      background: transparent;
+      color: var(--ui-ink);
+      font: inherit;
+    }
+
+    #landSearchInput::placeholder {
+      color: #7a8c97;
+    }
+
+    #landSearchClear {
+      width: 34px;
+      height: 34px;
+      border-radius: 7px;
+      color: var(--ui-muted);
+      transition: background-color 140ms ease, color 140ms ease;
+    }
+
+    #landSearchClear:hover {
+      background: var(--ui-surface-subtle);
+      color: var(--ui-ink);
+    }
+
+    #landSearchResults {
+      overflow: hidden auto;
+      margin-top: 8px;
+      border-radius: 10px;
+    }
+
+    #landSearchStatus {
+      padding: 10px 13px;
+      background: var(--ui-surface-subtle);
+      color: var(--ui-muted);
+      font-size: 11px;
+    }
+
+    .landSearchResult {
+      padding: 10px 13px;
+      border-bottom-color: #edf1f4;
+      transition: background-color 120ms ease;
+    }
+
+    .landSearchResult:hover,
+    .landSearchResult.active {
+      background: #edf4f8;
+    }
+
+    .landSearchResultTitle {
+      color: var(--ui-ink);
+      font-size: 13px;
+    }
+
+    .landSearchResultMeta {
+      color: var(--ui-muted);
+      font-size: 11px;
+    }
+
+    #coordinateDisplay {
+      bottom: 14px;
+      max-width: calc(100vw - 32px);
+      overflow: hidden;
+      padding: 8px 13px;
+      border: 1px solid var(--ui-border);
+      border-radius: 9px;
+      background: rgba(255, 255, 255, 0.97);
+      box-shadow: 0 4px 16px rgba(20, 42, 57, 0.14);
+      color: #344c5b;
+      font-size: 11px;
+      font-variant-numeric: tabular-nums;
+    }
+
+    #attrPanel,
+    #listPanel {
+      bottom: 18px;
+      max-height: min(55vh, 560px);
+      overflow: hidden auto;
+      color: var(--ui-ink);
+      font-size: 12px;
+    }
+
+    #attrPanel {
+      left: 18px;
+      width: min(400px, calc(100vw - 36px));
+      max-width: 400px;
+    }
+
+    #listPanel {
+      right: 18px;
+      width: min(350px, calc(100vw - 36px));
+    }
+
+    #attrPanelHeader,
+    #listPanelHeader,
+    #infoModalHeader {
+      min-height: 42px;
+      padding: 10px 14px;
+      background: var(--ui-brand);
+      color: #fff;
+    }
+
+    #attrPanelHeader,
+    #listPanelHeader {
+      position: sticky;
+      top: 0;
+      z-index: 1;
+    }
+
+    #attrPanelClose,
+    #listPanelClose,
+    #listPanelClear,
+    #infoModalClose {
+      border-radius: 5px;
+      color: inherit;
+      transition: background-color 140ms ease;
+    }
+
+    #attrPanelClose:hover,
+    #listPanelClose:hover,
+    #listPanelClear:hover,
+    #infoModalClose:hover {
+      background: rgba(255, 255, 255, 0.16);
+    }
+
+    #attrPanelBody,
+    #infoModalBody {
+      padding: 12px 14px;
+      line-height: 1.55;
+    }
+
+    #attrPanelBody td {
+      padding: 7px 6px;
+      border-bottom-color: #edf1f4;
+    }
+
+    #attrPanelBody td:first-child {
+      color: #435b69;
+    }
+
+    #attrPanelBody a {
+      color: #17628b;
+      text-decoration-thickness: 1px;
+      text-underline-offset: 2px;
+    }
+
+    #listPanelBody {
+      padding: 8px 0;
+    }
+
+    .listGroupHeader {
+      padding: 8px 14px;
+      background: var(--ui-surface-subtle);
+      color: #435b69;
+      font-size: 11px;
+      letter-spacing: 0.025em;
+    }
+
+    .listItemRow {
+      padding: 9px 14px;
+      border-bottom-color: #edf1f4;
+    }
+
+    .listItemRow.active {
+      background: #e7f1f6;
+      color: var(--ui-brand-hover);
+    }
+
+    #infoModal {
+      border: 1px solid var(--ui-border);
+      border-radius: var(--ui-radius);
+      box-shadow: 0 18px 50px rgba(10, 28, 40, 0.28);
+      color: var(--ui-ink);
+    }
+
+    #infoModalHeader {
+      border-radius: var(--ui-radius) var(--ui-radius) 0 0;
+    }
+
+    #infoModalOverlay {
+      background: rgba(13, 30, 42, 0.48);
+      backdrop-filter: blur(2px);
+    }
+
+    button,
+    input,
+    textarea,
+    select,
+    [role="button"] {
+      font-family: inherit;
+    }
+
+    button:focus-visible,
+    input:focus-visible,
+    textarea:focus-visible,
+    select:focus-visible,
+    [role="button"]:focus-visible,
+    #attrPanelClose:focus-visible,
+    #listPanelClose:focus-visible,
+    #listPanelClear:focus-visible,
+    #infoModalClose:focus-visible {
+      outline: 3px solid rgba(48, 127, 165, 0.45);
+      outline-offset: 2px;
+    }
+
+    @media (max-width: 760px) {
+      #statusPanel {
+        top: auto;
+        right: 10px;
+        bottom: 62px;
+        width: min(320px, calc(100vw - 20px));
+        max-height: min(48vh, 420px);
+        box-sizing: border-box;
+        padding: 12px;
+      }
+
+      #landSearchPanel {
+        top: 10px;
+        width: calc(100vw - 20px);
+        min-width: 0;
+      }
+
+      #coordinateDisplay {
+        bottom: 8px;
+        font-size: 10px;
+      }
+
+      #attrPanel {
+        left: 10px;
+        bottom: 54px;
+        width: calc(100vw - 20px);
+        max-width: none;
+        max-height: 42vh;
+      }
+
+      #listPanel {
+        right: 10px;
+        bottom: 54px;
+        width: calc(100vw - 20px);
+        max-height: 42vh;
+      }
+    }
+
+    @media (min-width: 761px) and (max-width: 1120px) {
+      #landSearchPanel {
+        left: auto;
+        right: 316px;
+        width: min(360px, calc(100vw - 350px));
+        min-width: 240px;
+        transform: none;
+      }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      *,
+      *::before,
+      *::after {
+        scroll-behavior: auto !important;
+        transition-duration: 0.01ms !important;
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+      }
+    }
+
+    /* =========================================================
+       PRENTLAYOUT - A4 LANDSCAPE, byggt a QGIS sniðmatinu
+       ========================================================= */
+    #printOverlay {
+      position: fixed;
+      inset: 0;
+      z-index: 2000;
+      display: none;
+      background: rgba(31, 41, 55, 0.88);
+      overflow: auto;
+      padding: 18px;
+      box-sizing: border-box;
+    }
+
+    #printOverlay.open {
+      display: block;
+    }
+
+    #printWorkspace {
+      display: grid;
+      grid-template-columns: minmax(270px, 330px) minmax(780px, 1fr);
+      gap: 18px;
+      align-items: start;
+      max-width: 1500px;
+      margin: 0 auto;
+    }
+
+    #printControls {
+      position: sticky;
+      top: 0;
+      background: #fff;
+      border-radius: 7px;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, .35);
+      padding: 15px;
+      color: #263238;
+      font-size: 13px;
+    }
+
+    #printControls h2 {
+      margin: 0 0 12px;
+      font-size: 18px;
+      color: #2e5266;
+    }
+
+    #printControls label {
+      display: block;
+      margin: 9px 0 4px;
+      font-weight: 600;
+    }
+
+    #printControls input,
+    #printControls textarea,
+    #printControls select {
+      width: 100%;
+      box-sizing: border-box;
+      padding: 7px 8px;
+      border: 1px solid #b0bec5;
+      border-radius: 4px;
+      font: inherit;
+      background: #fff;
+      color: #263238;
+    }
+
+    #printControls textarea {
+      min-height: 62px;
+      resize: vertical;
+    }
+
+    .printControlRow {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+    }
+
+    .printButtonRow {
+      display: flex;
+      gap: 8px;
+      margin-top: 14px;
+      flex-wrap: wrap;
+    }
+
+    .printAction {
+      flex: 1 1 90px;
+      border: 0;
+      border-radius: 4px;
+      padding: 9px 10px;
+      cursor: pointer;
+      font-weight: 700;
+    }
+
+    #printNowButton {
+      background: #2e5266;
+      color: #fff;
+    }
+
+    #printCloseButton {
+      background: #eceff1;
+      color: #263238;
+    }
+
+    #printResetExtentButton {
+      background: #e3f2fd;
+      color: #0d47a1;
+    }
+
+    #printStatus {
+      margin-top: 9px;
+      color: #546e7a;
+      line-height: 1.4;
+    }
+
+    #printSheetWrap {
+      overflow: auto;
+      padding: 0 0 24px;
+    }
+
+    #printSheet {
+      position: relative;
+      width: 297mm;
+      height: 210mm;
+      box-sizing: border-box;
+      background: #fff;
+      color: #000;
+      margin: 0 auto;
+      box-shadow: 0 5px 25px rgba(0, 0, 0, .45);
+      overflow: hidden;
+      font-family: Arial, Helvetica, sans-serif;
+    }
+
+    #printMapFrame {
+      position: absolute;
+      left: 3.417mm;
+      top: 1.995mm;
+      width: 290.166mm;
+      height: 172.363mm;
+      border: .8mm solid #000;
+      box-sizing: border-box;
+      overflow: hidden;
+      background: #eef2f3;
+    }
+
+    #printMapView {
+      position: absolute;
+      inset: 0;
+    }
+
+    #printMapView .esri-ui {
+      display: none !important;
+    }
+
+    #printMapView .esri-view-surface--inset-outline:focus::after {
+      outline: none !important;
+    }
+
+    #printAaetladOverlay {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+      object-fit: fill;
+      mix-blend-mode: multiply;
+      display: none;
+      z-index: 3;
+    }
+
+    #printNorthArrow {
+      position: absolute;
+      left: 6.5mm;
+      top: 5.5mm;
+      z-index: 5;
+      width: 12mm;
+      height: 20mm;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      color: #000;
+      text-shadow: 0 0 2px #fff, 0 0 3px #fff;
+      pointer-events: none;
+    }
+
+    #printNorthArrow .northLetter {
+      font-size: 4.2mm;
+      font-weight: 700;
+      line-height: 1;
+    }
+
+    #printNorthArrow .northGlyph {
+      font-size: 13mm;
+      line-height: .75;
+      transform: scaleX(.72);
+    }
+
+
+    /* Dynamic print north arrow: N stays upright, arrow follows true north */
+    #printNorthArrow .northGlyph {
+      display: block;
+      transform-origin: 50% 50%;
+      will-change: transform;
+    }
+
+    #printScaleBar {
+      position: absolute;
+      left: 13mm;
+      bottom: 5mm;
+      z-index: 5;
+      min-width: 43mm;
+      color: #000;
+      text-shadow: 0 0 2px #fff, 0 0 3px #fff;
+      pointer-events: none;
+      font-size: 3mm;
+    }
+
+    #printScaleGraphic {
+      display: flex;
+      align-items: flex-end;
+      height: 5mm;
+    }
+
+    #printScaleGraphic span {
+      display: block;
+      width: 10mm;
+      height: 3mm;
+      border-top: .35mm solid #000;
+      border-bottom: .35mm solid #000;
+      border-left: .35mm solid #000;
+      background: #fff;
+    }
+
+    #printScaleGraphic span:nth-child(odd) {
+      background: #000;
+    }
+
+    #printScaleGraphic span:last-child {
+      border-right: .35mm solid #000;
+    }
+
+    #printScaleLabels {
+      display: flex;
+      justify-content: space-between;
+      width: 40mm;
+      margin-top: .7mm;
+      font-weight: 700;
+    }
+
+    #printTitleBlock {
+      position: absolute;
+      left: 3.417mm;
+      top: 175.2mm;
+      width: 290.166mm;
+      height: 31.2mm;
+      box-sizing: border-box;
+      border: .45mm solid #000;
+      display: grid;
+      grid-template-columns: 40mm 1fr 62mm;
+      background: #fff;
+    }
+
+    #printLogoCell {
+      border-right: .35mm solid #000;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 4mm;
+      box-sizing: border-box;
+    }
+
+    #printLogoCell img {
+      width: 31mm;
+      max-height: 22mm;
+      object-fit: contain;
+    }
+
+    .printEditable {
+      display: block;
+      width: 100%;
+      border: 0;
+      border-bottom: .18mm dotted #888;
+      padding: 0;
+      margin: 0;
+      outline: none;
+      background: transparent;
+      color: #000;
+      font-family: Arial, Helvetica, sans-serif;
+      box-sizing: border-box;
+    }
+
+    #sheetProject {
+      font-size: 5.2mm;
+      font-weight: 700;
+      line-height: 1.1;
+    }
+
+    #sheetDescription {
+      font-size: 3.7mm;
+      font-weight: 700;
+      line-height: 1.15;
+      resize: none;
+      height: 9mm;
+      overflow: hidden;
+    }
+
+    #printTitleBlock {
+      grid-template-columns: 184mm 1fr;
+    }
+
+    #printBlankArea {
+      border-right: .35mm solid #000;
+    }
+
+    #printInfoBlock {
+      display: grid;
+      grid-template-rows: 10.5mm 10mm 10.7mm;
+      min-width: 0;
+    }
+
+    #printInfoTop {
+      display: grid;
+      grid-template-columns: 36mm 1fr;
+      border-bottom: .3mm solid #000;
+    }
+
+    #printDescriptionCell {
+      display: flex;
+      align-items: center;
+      padding: 1mm 2mm;
+      box-sizing: border-box;
+    }
+
+    #sheetDescription {
+      width: 100%;
+      height: auto;
+      resize: none;
+      overflow: hidden;
+      font-size: 3.4mm;
+      line-height: 1.1;
+      font-weight: 400;
+      text-align: center;
+    }
+
+    #printInfoMiddle {
+      display: grid;
+      grid-template-columns: 1fr 22mm;
+      border-bottom: .3mm solid #000;
+    }
+
+    #printLandCell,
+    #printLandNoCell {
+      box-sizing: border-box;
+      padding: 1mm 1.5mm .7mm;
+    }
+
+    #printLandNoCell {
+      border-left: .3mm solid #000;
+    }
+
+    .titleBlockLabel {
+      display: block;
+      margin: 0;
+      padding: 0;
+      font-size: 2.7mm;
+      line-height: 1;
+      white-space: nowrap;
+    }
+
+    .titleBlockLargeValue {
+      display: block;
+      width: 100%;
+      margin: .7mm 0 0;
+      padding: 0;
+      border: 0;
+      font-size: 4.2mm;
+      line-height: 1;
+      font-weight: 400;
+    }
+
+    #printInfoBottom {
+      display: grid;
+      grid-template-columns: 33mm 22mm 16mm 16mm 1fr;
+    }
+
+    #printDrawnCell,
+    .printBottomMeta,
+    #printDrawingNumberCell {
+      box-sizing: border-box;
+      padding: 1.2mm 1.4mm .5mm;
+    }
+
+    .printBottomMeta,
+    #printDrawingNumberCell {
+      border-left: .3mm solid #000;
+    }
+
+    #printDrawnCell {
+      display: flex;
+      align-items: baseline;
+      gap: 1.5mm;
+    }
+
+    .inlineTitleLabel {
+      font-size: 2.9mm;
+      white-space: nowrap;
+    }
+
+    .inlineTitleValue {
+      flex: 1;
+      min-width: 0;
+      margin: 0;
+      padding: 0;
+      border: 0;
+      font-size: 3.2mm;
+      line-height: 1;
+    }
+
+    .titleBlockValue {
+      display: block;
+      width: 100%;
+      box-sizing: border-box;
+      margin: .6mm 0 0;
+      padding: 0;
+      border: 0;
+      font-size: 3.7mm;
+      line-height: 1;
+      text-align: center;
+    }
+
+    #printDrawingNumberCell .titleBlockValue {
+      font-size: 3.8mm;
+    }
+
+
+    #printInfoTop {
+      grid-template-columns: 36mm 1fr;
+    }
+
+    #printLogoCell {
+      padding: .6mm 2mm 1.8mm !important;
+      align-items: center !important;
+      overflow: hidden;
+    }
+
+    #printLogoCell img {
+      width: 29mm !important;
+      max-height: 6.5mm !important;
+      display: block;
+      object-fit: contain;
+      transform: translateY(-0.7mm);
+    }
+
+    #printInfoMiddle {
+      grid-template-columns: 1fr 27mm !important;
+    }
+
+    #printInfoBottom {
+      grid-template-columns: 31mm 21mm 15mm 15mm 25mm !important;
+    }
+
+    #printLandNoCell {
+      padding-left: 1.5mm;
+      padding-right: 1mm;
+    }
+
+    #printLandNoCell .titleBlockLargeValue {
+      font-size: 3.8mm !important;
+      white-space: nowrap;
+      overflow: visible;
+    }
+
+    #printDrawingNumberCell {
+      padding-left: 1mm;
+      padding-right: .7mm;
+    }
+
+    #printDrawingNumberCell .titleBlockLabel {
+      font-size: 2.45mm !important;
+    }
+
+    #printDrawingNumberCell .titleBlockValue {
+      font-size: 3.45mm !important;
+      white-space: nowrap;
+      overflow: visible;
+    }
+
+
+    #printTitleBlock {
+      grid-template-columns: 181mm 1fr !important;
+    }
+
+    #printInfoBlock {
+      display: grid !important;
+      grid-template-rows: 10.5mm 10mm 10.7mm !important;
+      min-width: 0;
+      overflow: hidden;
+    }
+
+    #printInfoTop {
+      grid-template-columns: 36mm minmax(0, 1fr) !important;
+      width: 100%;
+      box-sizing: border-box;
+    }
+
+    #printInfoMiddle {
+      grid-template-columns: minmax(0, 1fr) 29mm !important;
+      width: 100%;
+      box-sizing: border-box;
+    }
+
+    #printInfoBottom {
+      grid-template-columns: 32mm 23mm 16mm 16mm minmax(29mm, 1fr) !important;
+      width: 100%;
+      box-sizing: border-box;
+    }
+
+    #printLandCell,
+    #printLandNoCell,
+    #printDrawnCell,
+    .printBottomMeta,
+    #printDrawingNumberCell {
+      min-width: 0;
+    }
+
+    #printLandNoCell .titleBlockLargeValue,
+    #printDrawingNumberCell .titleBlockValue {
+      width: 100% !important;
+      min-width: 0;
+      box-sizing: border-box;
+    }
+
+    #printDrawingNumberCell .titleBlockLabel {
+      font-size: 2.35mm !important;
+    }
+
+
+    #printTitleBlock {
+      grid-template-columns: 177mm minmax(0, 1fr) !important;
+    }
+
+    #printInfoBlock {
+      grid-template-rows: 9.5mm 10.2mm 11.5mm !important;
+    }
+
+    #printInfoTop {
+      grid-template-columns: 39mm minmax(0, 1fr) !important;
+    }
+
+    #printLogoCell {
+      padding: .45mm 1.5mm 1.1mm !important;
+      justify-content: center !important;
+      align-items: center !important;
+    }
+
+    #printLogoCell img {
+      width: 33mm !important;
+      max-height: 7.1mm !important;
+      transform: translateY(-.35mm) !important;
+    }
+
+    #printDescriptionCell {
+      padding: .8mm 1.6mm !important;
+    }
+
+    #sheetDescription {
+      font-size: 3.15mm !important;
+      text-align: center !important;
+      line-height: 1.05 !important;
+    }
+
+    #printInfoMiddle {
+      grid-template-columns: minmax(0, 1fr) 25mm !important;
+    }
+
+    #printLandCell,
+    #printLandNoCell {
+      padding: .8mm 1.2mm .5mm !important;
+    }
+
+    .titleBlockLabel {
+      font-size: 2.55mm !important;
+      line-height: 1 !important;
+    }
+
+    .titleBlockLargeValue {
+      margin-top: .6mm !important;
+      font-size: 3.9mm !important;
+      line-height: 1 !important;
+    }
+
+    #printLandNoCell .titleBlockLargeValue {
+      font-size: 3.7mm !important;
+    }
+
+    #printInfoBottom {
+      grid-template-columns: 36mm 23mm 17mm 17mm minmax(30mm, 1fr) !important;
+    }
+
+    #printDrawnCell,
+    .printBottomMeta,
+    #printDrawingNumberCell {
+      padding: .9mm 1.2mm .45mm !important;
+    }
+
+    #printDrawnCell {
+      gap: 1.3mm !important;
+      align-items: flex-start !important;
+      padding-top: 1.15mm !important;
+    }
+
+    .inlineTitleLabel,
+    .inlineTitleValue {
+      font-size: 2.65mm !important;
+      line-height: 1.05 !important;
+    }
+
+    .titleBlockValue {
+      margin-top: .65mm !important;
+      font-size: 4.05mm !important;
+      line-height: 1 !important;
+      text-align: center !important;
+    }
+
+    #printDrawingNumberCell .titleBlockLabel {
+      font-size: 2.45mm !important;
+    }
+
+    #printDrawingNumberCell .titleBlockValue {
+      font-size: 3.75mm !important;
+    }
+
+
+    #printTitleBlock {
+      grid-template-columns: 151mm minmax(0, 1fr) !important;
+    }
+
+    #printBlankArea {
+      display: grid !important;
+      grid-template-columns: 84mm 43mm 24mm !important;
+      grid-template-rows: 9.5mm 10.2mm 11.5mm !important;
+      border-right: .35mm solid #000 !important;
+      box-sizing: border-box;
+      background: #fff !important;
+      overflow: hidden;
+    }
+
+    #printBlankArea>div {
+      box-sizing: border-box;
+      min-width: 0;
+      min-height: 0;
+    }
+
+    .blankTopLeft {
+      grid-column: 1;
+      grid-row: 1 / 4;
+      border-right: .3mm solid #000;
+    }
+
+    .blankTopMid {
+      grid-column: 2;
+      grid-row: 1;
+      border-right: .3mm solid #000;
+      border-bottom: .3mm solid #000;
+    }
+
+    .blankTopRight {
+      grid-column: 3;
+      grid-row: 1;
+      border-bottom: .3mm solid #000;
+    }
+
+    .blankMidLeft {
+      grid-column: 2;
+      grid-row: 2;
+      border-right: .3mm solid #000;
+      border-bottom: .3mm solid #000;
+    }
+
+    .blankMidMid {
+      grid-column: 3;
+      grid-row: 2;
+      border-bottom: .3mm solid #000;
+    }
+
+    .blankMidRight {
+      display: none;
+    }
+
+    .blankBottomLeft {
+      grid-column: 2;
+      grid-row: 3;
+      border-right: .3mm solid #000;
+    }
+
+    .blankBottomMid {
+      grid-column: 3;
+      grid-row: 3;
+    }
+
+    .blankBottomRight {
+      display: none;
+    }
+
+    #printInfoTop {
+      grid-template-columns: 39mm minmax(0, 1fr) !important;
+    }
+
+    #printInfoMiddle {
+      grid-template-columns: minmax(0, 1fr) 25mm !important;
+    }
+
+    #printInfoBottom {
+      grid-template-columns: 36mm 23mm 17mm 17mm minmax(30mm, 1fr) !important;
+    }
+
+
+    /* Print legend for Rafveita hönnun */
+    #printDesignLegend {
+      height: 100%;
+      box-sizing: border-box;
+      padding: 2.2mm 3mm;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      gap: 2.1mm;
+      font-family: Arial, Helvetica, sans-serif;
+      color: #000;
+      background: #fff;
+    }
+    .printLegendRow {
+      display: flex;
+      align-items: center;
+      gap: 3mm;
+      min-height: 4.5mm;
+      font-size: 3.15mm;
+      line-height: 1;
+      white-space: nowrap;
+    }
+    .printLegendSymbol {
+      position: relative;
+      flex: 0 0 25mm;
+      height: 4mm;
+    }
+    .printLegendLineRed::before,
+    .printLegendLineYellow::before {
+      content: "";
+      position: absolute;
+      left: 0;
+      right: 0;
+      top: 50%;
+      transform: translateY(-50%);
+      border-top-width: 1mm;
+      border-top-style: dashed;
+    }
+    .printLegendLineRed::before { border-top-color: #ff0000; }
+    .printLegendLineYellow::before { border-top-color: #ffc000; }
+    .printLegendTriangle {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .printLegendTriangle::before {
+      content: "";
+      width: 0;
+      height: 0;
+      border-left: 3mm solid transparent;
+      border-right: 3mm solid transparent;
+      border-bottom: 5mm solid #ff0000;
+    }
+
+    @media (max-width: 1120px) {
+      #printWorkspace {
+        grid-template-columns: 1fr;
+      }
+
+      #printControls {
+        position: relative;
+      }
+    }
+
+    @page {
+      size: A4 landscape;
+      margin: 0;
+    }
+
+    @media print {
+
+      html,
+      body {
+        width: 297mm !important;
+        height: 210mm !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        overflow: hidden !important;
+        background: #fff !important;
+      }
+
+      body>*:not(#printOverlay) {
+        display: none !important;
+      }
+
+      #printOverlay {
+        display: block !important;
+        position: static !important;
+        inset: auto !important;
+        width: 297mm !important;
+        height: 210mm !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        overflow: hidden !important;
+        background: #fff !important;
+      }
+
+      #printWorkspace {
+        display: block !important;
+        margin: 0 !important;
+        max-width: none !important;
+      }
+
+      #printControls {
+        display: none !important;
+      }
+
+      #printSheetWrap {
+        overflow: hidden !important;
+        padding: 0 !important;
+      }
+
+      #printSheet {
+        margin: 0 !important;
+        box-shadow: none !important;
+      }
+
+      .printEditable {
+        border: 0 !important;
+      }
+    }

@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="is">
+
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="initial-scale=1,maximum-scale=1,user-scalable=no" />
+  <title>RARIK kortasjá verkefnaundirbúnings</title>
+
+  <link rel="stylesheet" href="https://js.arcgis.com/4.29/esri/themes/light/main.css" />
+  <script src="https://js.arcgis.com/4.29/"></script>
+
+  <link rel="stylesheet" href="styles_oauth.css" />
+</head>
+
+<body>
+  <div id="viewDiv"></div>
+  <div id="rarikAuthPanel" role="status" aria-live="polite">
+    <span id="rarikAuthText">Athuga innskráningu...</span>
+    <button id="rarikAuthButton" type="button">Skrá inn</button>
+  </div>
+  <div id="coordinateDisplay" aria-live="polite">DD: --, -- &nbsp; | &nbsp; ISN93: --, --</div>
+
+  <div id="landSearchPanel">
+    <div id="landSearchInputWrap">
+      <input id="landSearchInput" type="search" placeholder="Leita að landnúmeri eða heiti landeignar..."
+        autocomplete="off" aria-label="Leita í Landeignaskrá" aria-controls="landSearchResults" aria-expanded="false" />
+      <button id="landSearchClear" type="button" title="Hreinsa leit" aria-label="Hreinsa leit">✕</button>
+    </div>
+    <div id="landSearchResults" role="listbox"></div>
+  </div>
+
+  <div id="statusPanel">
+    <img id="rarikLogo" src="https://d2kejc37ec1x3t.cloudfront.net/AcuCustom/Sitename/Icon/Icons/RAR-Merki-RGB-web.svg"
+      alt="RARIK" />
+    <strong>Þekjur</strong>
+    <div id="layerList"></div>
+    <div id="status-basemap" class="pending" style="display:none;">⏳ Loftmyndir (basemap)</div>
+  </div>
+
+  <div id="attrPanel" style="display:none;">
+    <div id="attrPanelHeader">
+      <strong id="attrPanelTitle">Eigindi flatar</strong>
+      <span id="attrPanelClose" title="Loka">✕</span>
+    </div>
+    <div id="attrPanelBody"></div>
+  </div>
+
+  <div id="listPanel">
+    <div id="listPanelHeader">
+      <strong id="listPanelTitle">Fyrirbæri innan svæðis</strong>
+      <span>
+        <span id="listPanelClear" title="Hreinsa teiknaða svæðið">Hreinsa</span>
+        &nbsp;|&nbsp;
+        <span id="listPanelClose" title="Loka">✕</span>
+      </span>
+    </div>
+    <div id="listPanelBody"></div>
+  </div>
+
+  <div id="infoModalOverlay">
+    <div id="infoModal">
+      <div id="infoModalHeader">
+        <strong id="infoModalTitle">Upplýsingar</strong>
+        <span id="infoModalClose" title="Loka">✕</span>
+      </div>
+      <div id="infoModalBody"></div>
+    </div>
+  </div>
+
+
+
+  <!-- =========================================================
+       PRENTGLUGGI - fyllt med JavaScript inni ArcGIS require
+       ========================================================= -->
+  <div id="printOverlay" aria-hidden="true">
+    <div id="printWorkspace">
+      <aside id="printControls" aria-label="Prentstillingar">
+        <h2>Prentun korts</h2>
+        <label for="controlProject">Heiti verkefnis</label>
+        <input id="controlProject" type="text" value="Hvítarvellir">
+        <label for="controlDescription">Lýsing / titill teikningar</label>
+        <textarea id="controlDescription">Samkomulag vegna lagningar jarðstrengja</textarea>
+        <div class="printControlRow">
+          <div><label for="controlLandNo">Landnúmer</label><input id="controlLandNo" type="text" value="L133886"></div>
+          <div><label for="controlDrawingNo">Teikningarnúmer</label><input id="controlDrawingNo" type="text"
+              value="VHHB-14"></div>
+        </div>
+        <div class="printControlRow">
+          <div><label for="controlSheetNo">Blað</label><input id="controlSheetNo" type="text" value="1-1"></div>
+          <div><label for="controlDrawnBy">Teiknað</label><input id="controlDrawnBy" type="text" value="SG"></div>
+        </div>
+
+        <label for="controlScale">Mælikvarði</label>
+        <select id="controlScale">
+          <option value="current">Núverandi mælikvarði</option>
+          <option value="500">1:500</option>
+          <option value="1000">1:1.000</option>
+          <option value="2000">1:2.000</option>
+          <option value="2500">1:2.500</option>
+          <option value="5000">1:5.000</option>
+          <option value="10000">1:10.000</option>
+          <option value="25000">1:25.000</option>
+          <option value="50000">1:50.000</option>
+        </select>
+        <div class="printButtonRow">
+          <button id="printResetExtentButton" class="printAction" type="button">Sama kortasvæði</button>
+          <button id="printNowButton" class="printAction" type="button">Prenta / PDF</button>
+          <button id="printCloseButton" class="printAction" type="button">Loka</button>
+        </div>
+        <div id="printStatus" aria-live="polite">Þú getur fært og þysjað kortið inni í prentsíðunni áður en þú prentar.
+        </div>
+      </aside>
+
+      <main id="printSheetWrap">
+        <section id="printSheet" aria-label="A4 prentsíða">
+          <div id="printMapFrame">
+            <div id="printMapView"></div>
+            <img id="printAaetladOverlay" alt="">
+            <div id="printNorthArrow" aria-hidden="true"><span class="northLetter">N</span><span
+                class="northGlyph">▲</span></div>
+            <div id="printScaleBar" aria-hidden="true">
+              <div id="printScaleGraphic"><span></span><span></span><span></span><span></span></div>
+              <div id="printScaleLabels"><span>0</span><span id="printScaleBarMiddle">50</span><span
+                  id="printScaleBarEnd">100 m</span></div>
+            </div>
+          </div>
+
+          <div id="printTitleBlock">
+            <div id="printBlankArea" aria-hidden="true">
+              <div class="blankTopLeft">
+                <div id="printDesignLegend" aria-label="Skýringar Rafveita hönnun">
+                  <div class="printLegendRow"><span class="printLegendSymbol printLegendLineRed" aria-hidden="true"></span><span>Nýr háspennustrengur</span></div>
+                  <div class="printLegendRow"><span class="printLegendSymbol printLegendLineYellow" aria-hidden="true"></span><span>Ný Heimtaug</span></div>
+                  <div class="printLegendRow"><span class="printLegendSymbol printLegendTriangle" aria-hidden="true"></span><span>Spennistöð</span></div>
+                </div>
+              </div>
+              <div class="blankTopMid"></div>
+              <div class="blankTopRight"></div>
+              <div class="blankMidLeft"></div>
+              <div class="blankMidMid"></div>
+              <div class="blankMidRight"></div>
+              <div class="blankBottomLeft"></div>
+              <div class="blankBottomMid"></div>
+              <div class="blankBottomRight"></div>
+            </div>
+            <div id="printInfoBlock">
+              <div id="printInfoTop">
+                <div id="printLogoCell"><img
+                    src="https://d2kejc37ec1x3t.cloudfront.net/AcuCustom/Sitename/Icon/Icons/RAR-Merki-RGB-web.svg"
+                    alt="RARIK"></div>
+                <div id="printDescriptionCell"><textarea id="sheetDescription" class="printEditable"
+                    aria-label="Lýsing">Samkomulag vegna lagningar jarðstrengja</textarea></div>
+              </div>
+              <div id="printInfoMiddle">
+                <div id="printLandCell"><span class="titleBlockLabel">Land</span><input id="sheetProject"
+                    class="printEditable titleBlockLargeValue" type="text" value="Hvítarvellir"></div>
+                <div id="printLandNoCell"><span class="titleBlockLabel">Landnúmer</span><input id="sheetLandNo"
+                    class="printEditable titleBlockLargeValue" type="text" value="L133886"></div>
+              </div>
+              <div id="printInfoBottom">
+                <div id="printDrawnCell"><span class="inlineTitleLabel">Teiknað:</span><input id="sheetDrawnText"
+                    class="printEditable inlineTitleValue" type="text" value="SG"></div>
+                <div class="printBottomMeta"><span class="titleBlockLabel">Kvarði</span><span id="sheetScale"
+                    class="titleBlockValue">1:--</span></div>
+                <div class="printBottomMeta"><span class="titleBlockLabel">Stærð</span><span
+                    class="titleBlockValue">A4</span></div>
+                <div class="printBottomMeta"><span class="titleBlockLabel">Blað</span><input id="sheetSheetNo"
+                    class="printEditable titleBlockValue" type="text" value="1-1"></div>
+                <div id="printDrawingNumberCell"><span class="titleBlockLabel">Teikningarnúmer</span><input
+                    id="sheetDrawingNo" class="printEditable titleBlockValue" type="text" value="VHHB-14"></div>
+              </div>
+            </div>
+          </div>
+        </section>
+      </main>
+    </div>
+  </div>
+
+  <script src="app_oauth.js"></script>
+</body>
+
+</html>
