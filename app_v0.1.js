@@ -22,7 +22,7 @@
       // Replace this placeholder with the App ID from the registered RARIK Portal application.
       const RARIK_PORTAL_URL = "https://kort.rarik.is/portal";
       const RARIK_PORTAL_SHARING_URL = RARIK_PORTAL_URL + "/sharing";
-      const RARIK_OAUTH_APP_ID = "PASTE_RARIK_PORTAL_APP_ID_HERE";
+      const RARIK_OAUTH_APP_ID = "jfTe4e2O3m6fDIZk";
       const authPanel = document.getElementById("rarikAuthPanel");
       const authText = document.getElementById("rarikAuthText");
       const authButton = document.getElementById("rarikAuthButton");
