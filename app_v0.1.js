@@ -19,13 +19,15 @@
       "esri/identity/IdentityManager"
     ], function (EsriMap, MapView, FeatureLayer, WMSLayer, GraphicsLayer, MapImageLayer, Sketch, Home, Locate, Measurement, Expand, geometryEngine, Basemap, SpatialReference, projection, Graphic, OAuthInfo, esriId) {
 
-      // Replace this placeholder with the App ID from the registered RARIK Portal application.
       const RARIK_PORTAL_URL = "https://kort.rarik.is/portal";
-      const RARIK_PORTAL_SHARING_URL = RARIK_PORTAL_URL + "/sharing";
+      const RARIK_CABLE_LAYER_URL = "https://kort.rarik.is/server/rest/services/L%C3%A1gspennustrengur_h%C3%B6nnun/FeatureServer/129";
       const RARIK_OAUTH_APP_ID = "jfTe4e2O3m6fDIZk";
       const authPanel = document.getElementById("rarikAuthPanel");
       const authText = document.getElementById("rarikAuthText");
       const authButton = document.getElementById("rarikAuthButton");
+      let rarikPortalSignedIn = false;
+      let rarikSignInPromise = null;
+      let addProtectedRarikLayers = function () {};
 
       function setAuthState(text, buttonText, buttonVisible) {
         if (authText) authText.textContent = text;
@@ -36,35 +38,56 @@
         if (authPanel) authPanel.style.display = "flex";
       }
 
-      const oauthConfigured = RARIK_OAUTH_APP_ID !== "PASTE_RARIK_PORTAL_APP_ID_HERE";
-      if (oauthConfigured) {
-        esriId.registerOAuthInfos([new OAuthInfo({
-          appId: RARIK_OAUTH_APP_ID,
-          portalUrl: RARIK_PORTAL_URL,
-          popup: false,
-          preserveUrlHash: true
-        })]);
-        setAuthState("Athuga innskráningu í RARIK Portal...", "Skrá inn", false);
-        esriId.checkSignInStatus(RARIK_PORTAL_SHARING_URL)
-          .then(function () {
-            setAuthState("Innskráð/ur í RARIK Portal", "Skrá út", true);
-            authButton.onclick = function () {
-              esriId.destroyCredentials();
-              window.location.reload();
-            };
-          })
-          .catch(function () {
-            setAuthState("RARIK-lög krefjast innskráningar", "Skrá inn", true);
-            authButton.onclick = function () {
-              esriId.getCredential(RARIK_PORTAL_SHARING_URL);
-            };
-          });
-      } else {
-        setAuthState("Vantar App ID fyrir RARIK Portal", "Leiðbeiningar", true);
+      esriId.registerOAuthInfos([new OAuthInfo({
+        appId: RARIK_OAUTH_APP_ID,
+        portalUrl: RARIK_PORTAL_URL,
+        popup: false,
+        preserveUrlHash: true
+      })]);
+
+      function finishRarikSignIn() {
+        rarikPortalSignedIn = true;
+        setAuthState("Innskráð/ur í RARIK Portal", "Skrá út", true);
         authButton.onclick = function () {
-          alert("Skráðu vefsjána sem Web Mapping Application í RARIK Portal og settu App ID í RARIK_OAUTH_APP_ID efst í app_oauth.js.");
+          esriId.destroyCredentials();
+          window.location.reload();
         };
+        addProtectedRarikLayers();
       }
+
+      function requestRarikSignIn() {
+        if (rarikPortalSignedIn) return Promise.resolve();
+        if (!rarikSignInPromise) {
+          rarikSignInPromise = esriId.getCredential(RARIK_CABLE_LAYER_URL)
+            .then(finishRarikSignIn)
+            .catch(function (error) {
+              console.error("Innskráning í RARIK Portal mistókst:", error);
+              setAuthState("Innskráning mistókst: " + (error && error.message ? error.message : "óþekkt villa"), "Reyna aftur", true);
+              authButton.onclick = function () {
+                rarikSignInPromise = null;
+                requestRarikSignIn().catch(function () {});
+              };
+              throw error;
+            })
+            .then(function () {
+              rarikSignInPromise = null;
+            }, function (error) {
+              rarikSignInPromise = null;
+              throw error;
+            });
+        }
+        return rarikSignInPromise;
+      }
+
+      setAuthState("Athuga innskráningu í RARIK Portal...", "Skrá inn", false);
+      esriId.checkSignInStatus(RARIK_CABLE_LAYER_URL)
+        .then(finishRarikSignIn)
+        .catch(function () {
+          setAuthState("RARIK-hönnunarlög krefjast innskráningar", "Skrá inn", true);
+          authButton.onclick = function () {
+            requestRarikSignIn().catch(function () {});
+          };
+        });
 
       const loftmyndirLayer = new WMSLayer({
         url: "https://tc.map.is/mapcache",
@@ -127,6 +150,7 @@
             subgroup: "Rafveita hönnun",
             statusElId: statusId,
             geometryType: "polyline",
+            requiresAuthentication: true,
             info: title + " frá RARIK."
           }
         };
@@ -375,7 +399,33 @@
         basemap: loftmyndirBasemap
       });
 
-      map.addMany(arcgisFeatureLayers.map(function (l) { return l.layer; }));
+      map.addMany(arcgisFeatureLayers
+        .filter(function (l) { return !l.config.requiresAuthentication; })
+        .map(function (l) { return l.layer; }));
+
+      let protectedRarikLayersAdded = false;
+      addProtectedRarikLayers = function () {
+        if (protectedRarikLayersAdded) return;
+        const protectedLayers = arcgisFeatureLayers.filter(function (l) {
+          return l.config.requiresAuthentication;
+        });
+        map.addMany(protectedLayers.map(function (l) { return l.layer; }));
+        protectedLayersAdded = true;
+        protectedLayers.forEach(function (l) {
+          l.layer.visible = !!(l.uiCheckbox && l.uiCheckbox.checked);
+          l.layer.when(function () {
+            const statusEl = document.getElementById(l.config.statusElId);
+            statusEl.className = "layerRowStatus ok";
+            statusEl.textContent = "✅ hlóðst inn";
+          }, function (error) {
+            console.error("Villa við að hlaða " + l.config.title, error);
+            const statusEl = document.getElementById(l.config.statusElId);
+            statusEl.className = "layerRowStatus fail";
+            statusEl.textContent = "❌ villa: " + (error && error.message ? error.message : "óþekkt");
+          });
+        });
+      };
+      if (rarikPortalSignedIn) addProtectedRarikLayers();
 
       const view = new MapView({
         container: "viewDiv",
@@ -1758,6 +1808,21 @@
       }
 
       function setLayerVisibility(layerObject, visible) {
+        if (layerObject.config.requiresAuthentication && visible && !rarikPortalSignedIn) {
+          if (layerObject.uiCheckbox) layerObject.uiCheckbox.checked = true;
+          setAuthState("Skráðu þig inn til að hlaða RARIK-hönnunarlögum.", "Skrá inn", true);
+          authButton.onclick = function () {
+            requestRarikSignIn().then(function () {
+              setLayerVisibility(layerObject, true);
+            }).catch(function () {});
+          };
+          refreshAllTriStates();
+          return;
+        }
+
+        if (layerObject.config.requiresAuthentication && visible) {
+          addProtectedRarikLayers();
+        }
         layerObject.layer.visible = visible;
         if (layerObject.uiCheckbox) layerObject.uiCheckbox.checked = visible;
         if (visible && layerObject.refreshForExtent && view.extent) {
@@ -1861,15 +1926,21 @@
         targetBody.appendChild(row);
 
         if (!l.refreshForExtent) {
-          l.layer.when(function () {
-            const el = document.getElementById(l.config.statusElId);
-            el.className = "layerRowStatus ok";
-            el.textContent = "✅ hlóðst inn";
-          }, function (err) {
-            const el = document.getElementById(l.config.statusElId);
-            el.className = "layerRowStatus fail";
-            el.textContent = "❌ villa: " + (err && err.message ? err.message : "óþekkt");
-          });
+          if (l.config.requiresAuthentication) {
+            const statusEl = document.getElementById(l.config.statusElId);
+            statusEl.className = "layerRowStatus pending";
+            statusEl.textContent = "🔒 Skráðu þig inn til að hlaða";
+          } else {
+            l.layer.when(function () {
+              const el = document.getElementById(l.config.statusElId);
+              el.className = "layerRowStatus ok";
+              el.textContent = "✅ hlóðst inn";
+            }, function (err) {
+              const el = document.getElementById(l.config.statusElId);
+              el.className = "layerRowStatus fail";
+              el.textContent = "❌ villa: " + (err && err.message ? err.message : "óþekkt");
+            });
+          }
         }
 
         if (hasLegendItems) {
@@ -2373,7 +2444,9 @@
           include: allLiveLayers
             .filter(function (l) { return l !== landeignaskra && l !== nytjaland; })
             .map(function (l) { return l.layer; })
-            .concat(arcgisFeatureLayers.map(function (l) { return l.layer; }))
+            .concat(arcgisFeatureLayers
+              .filter(function (l) { return !l.config.requiresAuthentication || rarikPortalSignedIn; })
+              .map(function (l) { return l.layer; }))
         }).then(async function (response) {
           if (clickRequestId !== mapClickRequestId) return;
           let landeignResult = response.results.find(function (item) {
